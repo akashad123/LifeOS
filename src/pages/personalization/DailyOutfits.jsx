@@ -7,6 +7,7 @@ import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import Modal from '../../components/ui/Modal';
 import Input from '../../components/ui/Input';
+import AutocompleteInput from '../../components/ui/AutocompleteInput';
 import Textarea from '../../components/ui/Textarea';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { Shirt, Calendar, ChevronLeft, ChevronRight, Pencil, Trash2, Plus } from 'lucide-react';
@@ -19,6 +20,7 @@ export default function DailyOutfits() {
     selectedDate, 
     setSelectedDate, 
     outfits, 
+    suggestions,
     loading: outfitLoading, 
     error: outfitError, 
     addOutfit,
@@ -268,39 +270,46 @@ export default function DailyOutfits() {
             </div>
           )}
           
-          <Input
+          <AutocompleteInput
             label="Top *"
             value={formData.top}
             onChange={(e) => setFormData({ ...formData, top: e.target.value })}
+            suggestions={suggestions?.tops || []}
             placeholder="e.g. Blue check shirt"
             disabled={isSubmitting}
             autoFocus
           />
           
-          <Input
+          <AutocompleteInput
             label="Bottom *"
             value={formData.bottom}
             onChange={(e) => setFormData({ ...formData, bottom: e.target.value })}
+            suggestions={suggestions?.bottoms || []}
             placeholder="e.g. Black trousers"
             disabled={isSubmitting}
           />
           
-          <Input
+          <AutocompleteInput
             label="Footwear (Optional)"
             value={formData.footwear}
             onChange={(e) => setFormData({ ...formData, footwear: e.target.value })}
+            suggestions={suggestions?.footwears || []}
             placeholder="e.g. Brown loafers"
             disabled={isSubmitting}
           />
           
-          <Textarea
-            label="Notes (Optional)"
-            value={formData.notes}
-            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-            placeholder="Add any helpful notes or details..."
-            disabled={isSubmitting}
-            rows={3}
-          />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Notes (Optional)
+            </label>
+            <Textarea
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              placeholder="Add any helpful notes or details..."
+              disabled={isSubmitting}
+              rows={3}
+            />
+          </div>
           
           <div className="flex gap-3 justify-end pt-4">
             <Button type="button" variant="secondary" onClick={closeModal} disabled={isSubmitting}>

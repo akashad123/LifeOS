@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   getDailyNotes,
   createDailyNote,
@@ -27,6 +27,25 @@ export function useDailyNotes() {
   useEffect(() => {
     fetchNotes();
   }, [fetchNotes]);
+
+  // Extract unique title suggestions case-insensitively while preserving original display casing and recency
+  const titleSuggestions = useMemo(() => {
+    const seen = new Set();
+    const unique = [];
+    for (const note of notes) {
+      if (typeof note?.title === 'string') {
+        const trimmed = note.title.trim();
+        if (trimmed.length > 0) {
+          const normalized = trimmed.toLowerCase();
+          if (!seen.has(normalized)) {
+            seen.add(normalized);
+            unique.push(trimmed);
+          }
+        }
+      }
+    }
+    return unique;
+  }, [notes]);
 
   const addNote = async (noteData) => {
     try {
@@ -57,7 +76,7 @@ export function useDailyNotes() {
   const removeNote = async (id) => {
     try {
       await deleteDailyNote(id);
-      setNotes(prev => prev.filter(n => n.id !== id));
+      setNotes(prev => prev.filter(o => o.id !== id));
       return { success: true };
     } catch (err) {
       return { success: false, error: err.message };
@@ -66,6 +85,8 @@ export function useDailyNotes() {
 
   return {
     notes,
+    titleSuggestions,
+    suggestions: { titles: titleSuggestions },
     loading,
     error,
     addNote,

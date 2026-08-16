@@ -48,6 +48,22 @@ export async function updateDailyOutfit(id, outfitData) {
   return data;
 }
 
+export async function getDailyOutfitSuggestions() {
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  if (userError || !userData?.user) throw new Error('User not authenticated');
+
+  const { data, error } = await supabase
+    .from('daily_outfits')
+    .select('top, bottom, footwear')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    throw new Error(`Error fetching outfit suggestions: ${error.message}`);
+  }
+
+  return data || [];
+}
+
 export async function deleteDailyOutfit(id) {
   const { data: userData, error: userError } = await supabase.auth.getUser();
   if (userError || !userData?.user) throw new Error('User not authenticated');

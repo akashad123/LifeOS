@@ -6,6 +6,7 @@ import ErrorState from '../../components/ui/ErrorState';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import Input from '../../components/ui/Input';
+import AutocompleteInput from '../../components/ui/AutocompleteInput';
 import Select from '../../components/ui/Select';
 import Textarea from '../../components/ui/Textarea';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
@@ -117,6 +118,7 @@ function DailyNoteCard({ item, onEdit, onDelete, onView }) {
 export default function DailyNotes() {
   const {
     notes,
+    titleSuggestions,
     loading: itemsLoading,
     error: itemsError,
     addNote,
@@ -420,15 +422,14 @@ export default function DailyNotes() {
                 disabled={isSubmitting}
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Title (Optional)</label>
-              <Input
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                placeholder="e.g. End of Q3 Sprint"
-                disabled={isSubmitting}
-              />
-            </div>
+            <AutocompleteInput
+              label="Title (Optional)"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              suggestions={titleSuggestions || []}
+              placeholder="e.g. End of Q3 Sprint"
+              disabled={isSubmitting}
+            />
           </div>
           
           <div>
