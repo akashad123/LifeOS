@@ -1,8 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { getLocalIsoDate } from '../utils/dateUtils';
 import {
-  getDailyOutfitsByDate,
-  getDailyOutfitSuggestions,
+  getAllDailyOutfits,
   createDailyOutfit,
   updateDailyOutfit,
   deleteDailyOutfit
@@ -34,19 +32,21 @@ function extractUniqueValues(records, field) {
   return unique;
 }
 
-export function useDailyOutfits(initialDate = getLocalIsoDate()) {
-  const [selectedDate, setSelectedDate] = useState(initialDate);
+/**
+ * useDailyOutfits Hook
+ * Manages full lifecycle and state for Daily Outfits across months and historical dates.
+ */
+export function useDailyOutfits() {
   const [outfits, setOutfits] = useState([]);
-  const [historyRecords, setHistoryRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch outfits for the specific selected date
-  const fetchOutfits = useCallback(async (date) => {
+  // Fetch all historical and current outfit records
+  const fetchOutfits = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await getDailyOutfitsByDate(date);
+      const data = await getAllDailyOutfits();
       setOutfits(data || []);
     } catch (err) {
       setError(err.message);
@@ -55,42 +55,26 @@ export function useDailyOutfits(initialDate = getLocalIsoDate()) {
     }
   }, []);
 
-  // Fetch all historical outfit records for autocomplete suggestions
-  const fetchSuggestions = useCallback(async () => {
-    try {
-      const data = await getDailyOutfitSuggestions();
-      setHistoryRecords(data || []);
-    } catch (err) {
-      // Non-blocking: log error without breaking page load
-      console.error('Failed to load outfit suggestions:', err);
-    }
-  }, []);
-
   useEffect(() => {
-    fetchOutfits(selectedDate);
-  }, [selectedDate, fetchOutfits]);
+    fetchOutfits();
+  }, [fetchOutfits]);
 
-  useEffect(() => {
-    fetchSuggestions();
-  }, [fetchSuggestions]);
-
-  // Derive unique suggestions for tops, bottoms, and footwears
+  // Derive unique autocomplete suggestions dynamically from all recorded outfits
   const suggestions = useMemo(() => ({
-    tops: extractUniqueValues(historyRecords, 'top'),
-    bottoms: extractUniqueValues(historyRecords, 'bottom'),
-    footwears: extractUniqueValues(historyRecords, 'footwear')
-  }), [historyRecords]);
+    tops: extractUniqueValues(outfits, 'top'),
+    bottoms: extractUniqueValues(outfits, 'bottom'),
+    footwears: extractUniqueValues(outfits, 'footwear')
+  }), [outfits]);
 
   const addOutfit = async (outfitData) => {
     try {
-      const savedOutfit = await createDailyOutfit({ ...outfitData, worn_date: selectedDate });
-      setOutfits(prev => [...prev, savedOutfit]);
-      // Instantly make the newly saved values available as suggestions without a refetch
-      setHistoryRecords(prev => [
-        { top: savedOutfit.top, bottom: savedOutfit.bottom, footwear: savedOutfit.footwear },
-        ...prev
-      ]);
-      return { success: true };
+      const savedOutfit = await createDailyOutfit(outfitData);
+      setOutfits(prev => {
+        const updated = [savedOutfit, ...prev];
+        updated.sort((a, b) => new Date(b.worn_date) - new Date(a.worn_date));
+        return updated;
+      });
+      return { success: true, data: savedOutfit };
     } catch (err) {
       return { success: false, error: err.message };
     }
@@ -99,13 +83,12 @@ export function useDailyOutfits(initialDate = getLocalIsoDate()) {
   const editOutfit = async (id, outfitData) => {
     try {
       const savedOutfit = await updateDailyOutfit(id, outfitData);
-      setOutfits(prev => prev.map(o => o.id === id ? savedOutfit : o));
-      // Instantly incorporate updated values into suggestions
-      setHistoryRecords(prev => [
-        { top: savedOutfit.top, bottom: savedOutfit.bottom, footwear: savedOutfit.footwear },
-        ...prev
-      ]);
-      return { success: true };
+      setOutfits(prev => {
+        const updated = prev.map(o => o.id === id ? savedOutfit : o);
+        updated.sort((a, b) => new Date(b.worn_date) - new Date(a.worn_date));
+        return updated;
+      });
+      return { success: true, data: savedOutfit };
     } catch (err) {
       return { success: false, error: err.message };
     }
@@ -122,8 +105,6 @@ export function useDailyOutfits(initialDate = getLocalIsoDate()) {
   };
 
   return {
-    selectedDate,
-    setSelectedDate,
     outfits,
     suggestions,
     loading,
@@ -131,7 +112,6 @@ export function useDailyOutfits(initialDate = getLocalIsoDate()) {
     addOutfit,
     editOutfit,
     removeOutfit,
-    refresh: () => fetchOutfits(selectedDate),
-    refreshSuggestions: fetchSuggestions
+    refresh: fetchOutfits
   };
 }

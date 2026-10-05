@@ -452,3 +452,16 @@ This file tracks implemented features, major changes, technical decisions, and k
 - **Complete Elimination:** Removed UI component, hook, service, and routing to ensure zero orphaned code or unused bundles.
 - **Database Cleanliness:** Added migration `019_remove_annual_trips.sql` using `DROP TABLE IF EXISTS public.annual_trips CASCADE` to drop the table and its associated RLS policies cleanly.
 
+## [v0.22.0] - Feature: Daily Outfits (At-a-Glance Wardrobe Tracking) - 2026-10-05
+
+### Added
+- **At-a-Glance Wardrobe Metrics**: Displays Total Outfits Logged, Most Worn Top (with repetition frequency), Most Worn Bottom (with repetition frequency), and Top Footwear for the active timeframe.
+- **Month & Timeframe Navigation**: Added month navigation controls (`< Prev Month | Month Year | Next Month >`), `This Month` shortcut, and scope tabs (`Selected Month`, `Past 30 Days`, `All Outfits`).
+- **Live Search Filtering**: Instant client-side search across tops, bottoms, footwear, notes, and dates.
+- **Dual Display Modes**: Toggle between visual Cards Grid View (with relative date indicators like `Today`, `Yesterday`, `X days ago`) and compact chronological Table List View.
+- **Dynamic Suggestions**: Autocomplete suggestions derived directly from the full wardrobe dataset.
+
+### Changed
+- Refactored `dailyOutfitsService.js` and `useDailyOutfits.js` to fetch and maintain all wardrobe records across months while keeping seamless CRUD capabilities.
+
+

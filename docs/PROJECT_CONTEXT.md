@@ -127,3 +127,11 @@ LifeOS is a private personal management full-stack application designed to manag
 - Removed `Trips.jsx`, `useAnnualTrips.js`, `annualTripsService.js`, and navigation routes/sidebar links.
 - Created Migration `019_remove_annual_trips.sql` to cleanly drop the `annual_trips` table.
 
+### Phase 13: Enhanced Daily Outfits (At-a-Glance Wardrobe Tracking)
+- Redesigned the `Daily Outfits` module to support viewing all outfits worn over the past month or any selected month at a glance.
+- Added At-a-Glance summary cards (Total Logged, Most Worn Top, Most Worn Bottom, Top Footwear).
+- Added multi-mode time scopes (`Selected Month`, `Past 30 Days`, `All Outfits`).
+- Added real-time search filtering across garments and notes.
+- Added dual layout view modes (Cards Grid View and Table List View).
+
+
