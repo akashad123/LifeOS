@@ -19,7 +19,7 @@ Total Tables: 17
 8. `to_get`
 9. `credentials`
 10. `personal_documents`
-11. `annual_trips`
+11. `annual_trips` *(REMOVED in Migration 019)*
 
 **Daily Chores:**
 12. `vehicles`
@@ -134,29 +134,11 @@ Total Tables: 17
 - `007_add_document_categories.sql` (adds category CHECK constraint) is **APPLIED**.
 - `008_add_user_documents_storage_policies.sql` (adds Storage RLS policies) is **APPLIED**.
 
-#### H. Annual Trips
-**`annual_trips`**
-- `trip_name`: `text` (Not Null)
-- `destination`: `text` (Not Null)
-- `start_date`: `date` (Not Null)
-- `end_date`: `date` (Nullable)
-- `category`: `text` (Not Null, Default: 'Other')
-- `fuel_cost`: `numeric` (Default: 0)
-- `food_cost`: `numeric` (Default: 0)
-- `stay_cost`: `numeric` (Default: 0)
-- `other_cost`: `numeric` (Default: 0)
-- `notes`: `text` (Nullable)
-
+#### H. Annual Trips (REMOVED / DROPPED FROM SCOPE)
 *Migration Status:*
-- `009_add_annual_trips_category.sql` (adds category column and CHECK constraint) is **APPLIED**.
+- `019_remove_annual_trips.sql` permanently drops `annual_trips` from the database.
+- Completely removed from the application and schema.
 
-*Category Constraint:* 'Vacation', 'Family & Personal', 'Professional & Work', 'Weekend Getaway', 'Pilgrimage & Spiritual', 'Education & Study', 'Special Event', 'Other'. Default is 'Other' to protect existing data without assuming intent.
-
-*Derived Client-Side Architecture Rules:*
-- **Status:** Derived dynamically from dates. UPCOMING (`start_date > today`), ONGOING (`start_date <= today AND effective_end_date >= today`), COMPLETED (`effective_end_date < today`).
-- **Year:** Derived from `start_date`. No database column used.
-- **Duration:** Calculated inclusively. If `end_date` is `NULL`, `effective_end_date = start_date`, resulting in a 1-day trip duration.
-- **Total Cost:** Derived sum of the four expense columns (`fuel_cost + food_cost + stay_cost + other_cost`). Storing it directly risks data desynchronization if an individual expense is updated.
 
 #### I. Important Notes
 **`important_notes`**

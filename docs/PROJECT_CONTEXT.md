@@ -16,7 +16,7 @@ LifeOS is a private personal management full-stack application designed to manag
 
 ## Core Modules
 1. **Dashboard**
-2. **Personalization:** Daily Routines, Weekly Routines, Daily Outfits, Wishlist, To Give, To Get, Usernames & Passwords, Personal Documents, Annual Trips, Important Notes.
+2. **Personalization:** Daily Routines, Weekly Routines, Daily Outfits, Wishlist, To Give, To Get, Usernames & Passwords, Personal Documents, Important Notes.
 3. **Daily Chores:** Vehicles, Important Items Bought.
 4. **Professional:** Meetings, Daily Notes, Attendance.
 5. **Finance:** Expense Tracker.
@@ -121,3 +121,9 @@ LifeOS is a private personal management full-stack application designed to manag
 - Introduced a new top-level `Finance` sidebar category containing `Expense Tracker`.
 - Prepared and applied Migration `018_create_expenses.sql` with strict > 0 amount checking and fixed categories.
 - Implemented a month/year-based grid layout calculating running totals securely and natively reusing INR formatting logic.
+
+### Phase 12: Removal of Annual Trips
+- Completely removed the `Annual Trips` module from the application and codebase per user request.
+- Removed `Trips.jsx`, `useAnnualTrips.js`, `annualTripsService.js`, and navigation routes/sidebar links.
+- Created Migration `019_remove_annual_trips.sql` to cleanly drop the `annual_trips` table.
+

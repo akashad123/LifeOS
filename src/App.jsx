@@ -16,12 +16,13 @@ import ToGet from './pages/personalization/ToGet';
 import Credentials from './pages/personalization/Credentials';
 import Documents from './pages/personalization/Documents';
 import ImportantNotes from './pages/personalization/ImportantNotes';
-import Trips from './pages/personalization/Trips';
 
 import DailyNotes from './pages/professional/DailyNotes';
 import Attendance from './pages/professional/Attendance';
 
-import ExpenseTracker from './pages/finance/ExpenseTracker';export default function App() {
+import ExpenseTracker from './pages/finance/ExpenseTracker';
+
+export default function App() {
   return (
     <AuthProvider>
       <Routes>
@@ -40,7 +41,6 @@ import ExpenseTracker from './pages/finance/ExpenseTracker';export default funct
               <Route path="credentials" element={<Credentials />} />
               <Route path="documents" element={<Documents />} />
               <Route path="important-notes" element={<ImportantNotes />} />
-              <Route path="trips" element={<Trips />} />
             </Route>
             <Route path="professional">
 

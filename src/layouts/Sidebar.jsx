@@ -12,7 +12,6 @@ import {
   ShoppingBag, 
   Key, 
   FileText, 
-  Plane,
   Briefcase,
   Users,
   StickyNote,
@@ -39,8 +38,7 @@ const navGroups = [
       { title: 'To Get', path: '/personalization/to-get', icon: ShoppingBag },
       { title: 'Credentials', path: '/personalization/credentials', icon: Key },
       { title: 'Documents', path: '/personalization/documents', icon: FileText },
-      { title: 'Important Notes', path: '/personalization/important-notes', icon: StickyNote },
-      { title: 'Annual Trips', path: '/personalization/trips', icon: Plane }
+      { title: 'Important Notes', path: '/personalization/important-notes', icon: StickyNote }
     ]
   },
 

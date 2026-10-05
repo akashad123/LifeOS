@@ -439,3 +439,16 @@ This file tracks implemented features, major changes, technical decisions, and k
 - **Schema Independence:** Refused to merge with `To Give`/`To Get` tables to preserve strict context boundaries.
 - **Strict Validation:** Added `check (amount > 0)` and an exhaustive 8-option category constraint to protect data integrity at the database layer.
 - **Responsive Architecture:** Converted traditional data tables into responsive `h-[220px]` Flex Cards with smart line clamping and View Modals, enforcing the new global LifeOS standard format.
+
+## [v0.21.0] - Application Cleanup: Removed Annual Trips - 2026-10-05
+
+### Removed
+- `Annual Trips` module (`src/pages/personalization/Trips.jsx`, `src/hooks/useAnnualTrips.js`, `src/services/annualTripsService.js`).
+- Route `/personalization/trips` from `src/App.jsx`.
+- `Annual Trips` item and `Plane` icon from `src/layouts/Sidebar.jsx`.
+- Prepared Migration `019_remove_annual_trips.sql` to systematically drop `public.annual_trips`.
+
+### Technical Decisions
+- **Complete Elimination:** Removed UI component, hook, service, and routing to ensure zero orphaned code or unused bundles.
+- **Database Cleanliness:** Added migration `019_remove_annual_trips.sql` using `DROP TABLE IF EXISTS public.annual_trips CASCADE` to drop the table and its associated RLS policies cleanly.
+
