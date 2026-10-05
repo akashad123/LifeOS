@@ -464,4 +464,13 @@ This file tracks implemented features, major changes, technical decisions, and k
 ### Changed
 - Refactored `dailyOutfitsService.js` and `useDailyOutfits.js` to fetch and maintain all wardrobe records across months while keeping seamless CRUD capabilities.
 
+## [v0.22.1] - UI Refinement: Daily Outfits Dedicated Table List - 2026-10-05
+
+### Changed
+- Removed bottom card list grids completely per user preference.
+- Implemented a dedicated, responsive table view listing all dresses and outfits row-by-row chronologically.
+- Enhanced table rows with date tags, upper wear icons, lower wear badges, footwear details, notes/occasions, and quick action buttons.
+- Retained the top at-a-glance metrics bar, month navigation, time scoping, and live search.
+
+
 

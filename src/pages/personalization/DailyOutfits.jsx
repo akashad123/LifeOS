@@ -17,9 +17,6 @@ import {
   Trash2, 
   Plus, 
   Search, 
-  LayoutGrid, 
-  List, 
-  Sparkles, 
   Tag, 
   Footprints,
   CalendarDays,
@@ -65,8 +62,8 @@ function getRelativeDateLabel(dateStr, todayIso) {
 
   if (diffDays === 1) return 'Yesterday';
   if (diffDays === -1) return 'Tomorrow';
-  if (diffDays > 1 && diffDays <= 30) return `${diffDays} days ago`;
-  if (diffDays < -1) return `In ${Math.abs(diffDays)} days`;
+  if (diffDays > 1 && diffDays <= 30) return `${diffDays}d ago`;
+  if (diffDays < -1) return `In ${Math.abs(diffDays)}d`;
   return null;
 }
 
@@ -90,7 +87,6 @@ export default function DailyOutfits() {
   });
   const [filterMode, setFilterMode] = useState('month'); // 'month' | 'past30' | 'all'
   const [searchQuery, setSearchQuery] = useState('');
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'table'
 
   // Modal State for Add / Edit
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -439,10 +435,9 @@ export default function DailyOutfits() {
           </div>
         </div>
 
-        {/* Search & View Mode Switcher */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t border-border">
-          {/* Live Search */}
-          <div className="relative flex-1 max-w-md">
+        {/* Live Search */}
+        <div className="pt-3 border-t border-border">
+          <div className="relative max-w-md">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary" />
             <input
               type="text"
@@ -460,33 +455,10 @@ export default function DailyOutfits() {
               </button>
             )}
           </div>
-
-          {/* View Mode Buttons (Grid vs Table) */}
-          <div className="flex items-center gap-1 self-end sm:self-auto">
-            <span className="text-xs text-secondary mr-2 hidden sm:inline">View:</span>
-            <Button
-              variant={viewMode === 'grid' ? 'primary' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('grid')}
-              className="px-2.5 py-1.5"
-              title="Cards Grid View"
-            >
-              <LayoutGrid size={15} />
-            </Button>
-            <Button
-              variant={viewMode === 'table' ? 'primary' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('table')}
-              className="px-2.5 py-1.5"
-              title="Table List View"
-            >
-              <List size={15} />
-            </Button>
-          </div>
         </div>
       </div>
 
-      {/* Main Content Area */}
+      {/* Main Content Area - Table List */}
       {error ? (
         <ErrorState title="Failed to load outfits" message={error} onRetry={refresh} />
       ) : loading ? (
@@ -521,187 +493,131 @@ export default function DailyOutfits() {
             }
           />
         )
-      ) : viewMode === 'grid' ? (
-        /* Cards Grid View: At-a-glance wardrobe cards */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredOutfits.map((outfit) => {
-            const relLabel = getRelativeDateLabel(outfit.worn_date, todayIso);
-            const isToday = outfit.worn_date === todayIso;
+      ) : (
+        /* Dedicated Table List View */
+        <div className="bg-surface border border-border overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-gray-50 border-b border-border">
+                <tr>
+                  <th className="px-4 py-3 font-semibold text-gray-700 whitespace-nowrap">Date</th>
+                  <th className="px-4 py-3 font-semibold text-gray-700 min-w-[180px]">Top / Upper Dress</th>
+                  <th className="px-4 py-3 font-semibold text-gray-700 min-w-[180px]">Bottom / Lower</th>
+                  <th className="px-4 py-3 font-semibold text-gray-700 min-w-[140px]">Footwear</th>
+                  <th className="px-4 py-3 font-semibold text-gray-700">Notes / Occasion</th>
+                  <th className="px-4 py-3 font-semibold text-gray-700 w-28 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {filteredOutfits.map((outfit) => {
+                  const relLabel = getRelativeDateLabel(outfit.worn_date, todayIso);
+                  const isToday = outfit.worn_date === todayIso;
 
-            return (
-              <div 
-                key={outfit.id} 
-                className={`bg-surface border flex flex-col justify-between transition-all hover:border-primary/50 hover:shadow-sm ${
-                  isToday ? 'border-primary ring-1 ring-primary' : 'border-border'
-                }`}
-              >
-                {/* Card Header: Date & Tag */}
-                <div className="p-4 border-b border-border bg-gray-50/70 flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <Calendar size={15} className="text-secondary shrink-0" />
-                    <span className="font-bold text-sm text-primary truncate">
-                      {formatDateDisplay(outfit.worn_date)}
-                    </span>
-                  </div>
-                  {relLabel && (
-                    <span 
-                      className={`text-xs px-2 py-0.5 font-bold uppercase tracking-wider shrink-0 ${
-                        isToday 
-                          ? 'bg-primary text-white' 
-                          : 'bg-secondary/15 text-secondary'
+                  return (
+                    <tr 
+                      key={outfit.id} 
+                      className={`hover:bg-gray-50/75 transition-colors ${
+                        isToday ? 'bg-primary/5' : ''
                       }`}
                     >
-                      {relLabel}
-                    </span>
-                  )}
-                </div>
-
-                {/* Card Body: Clothes & Shoes */}
-                <div className="p-4 space-y-3.5 flex-1">
-                  {/* Top / Shirt / Dress */}
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-1.5 text-xs font-semibold text-secondary uppercase tracking-wider">
-                      <Shirt size={14} className="text-accent" />
-                      <span>Top / Upper</span>
-                    </div>
-                    <p className="font-bold text-gray-900 text-base break-words pl-5">
-                      {outfit.top}
-                    </p>
-                  </div>
-
-                  {/* Bottom / Trousers / Jeans */}
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-1.5 text-xs font-semibold text-secondary uppercase tracking-wider">
-                      <Tag size={14} className="text-secondary" />
-                      <span>Bottom / Lower</span>
-                    </div>
-                    <p className="font-semibold text-gray-800 text-base break-words pl-5">
-                      {outfit.bottom}
-                    </p>
-                  </div>
-
-                  {/* Footwear (if present) */}
-                  {outfit.footwear && (
-                    <div className="space-y-1 pt-1 border-t border-border/60">
-                      <div className="flex items-center gap-1.5 text-xs font-semibold text-secondary uppercase tracking-wider">
-                        <Footprints size={14} className="text-muted" />
-                        <span>Footwear</span>
-                      </div>
-                      <p className="text-sm font-medium text-gray-700 break-words pl-5">
-                        {outfit.footwear}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Notes (if present) */}
-                  {outfit.notes && (
-                    <div className="pt-2 text-xs text-gray-500 italic bg-background p-2.5 border-l-2 border-border break-words">
-                      "{outfit.notes}"
-                    </div>
-                  )}
-                </div>
-
-                {/* Card Footer: Action Buttons */}
-                <div className="px-4 py-3 border-t border-border bg-gray-50/50 flex items-center justify-between">
-                  <span className="text-[11px] text-muted">
-                    {outfit.worn_date}
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <Button 
-                      variant="secondary" 
-                      size="sm" 
-                      className="p-1.5" 
-                      onClick={() => openEditModal(outfit)}
-                      title="Edit Outfit"
-                    >
-                      <Pencil size={14} />
-                    </Button>
-                    <Button 
-                      variant="danger" 
-                      size="sm" 
-                      className="p-1.5" 
-                      onClick={() => confirmDelete(outfit)}
-                      title="Delete Outfit"
-                    >
-                      <Trash2 size={14} />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        /* Table View: Compact chronological log */
-        <div className="overflow-x-auto bg-surface border border-border">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-gray-50 border-b border-border">
-              <tr>
-                <th className="px-4 py-3 font-semibold text-gray-700 whitespace-nowrap">Date</th>
-                <th className="px-4 py-3 font-semibold text-gray-700 min-w-[170px]">Top / Upper</th>
-                <th className="px-4 py-3 font-semibold text-gray-700 min-w-[170px]">Bottom / Lower</th>
-                <th className="px-4 py-3 font-semibold text-gray-700 min-w-[130px]">Footwear</th>
-                <th className="px-4 py-3 font-semibold text-gray-700">Notes</th>
-                <th className="px-4 py-3 font-semibold text-gray-700 w-28 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {filteredOutfits.map((outfit) => {
-                const isToday = outfit.worn_date === todayIso;
-                return (
-                  <tr 
-                    key={outfit.id} 
-                    className={`hover:bg-gray-50/60 transition-colors ${isToday ? 'bg-primary/5' : ''}`}
-                  >
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="font-bold text-primary flex items-center gap-2">
-                        <span>{formatDateDisplay(outfit.worn_date)}</span>
-                        {isToday && (
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 bg-primary text-white uppercase">
-                            Today
+                      {/* Date & Day Column */}
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-primary">
+                            {formatDateDisplay(outfit.worn_date)}
                           </span>
+                          {relLabel && (
+                            <span 
+                              className={`text-[10px] font-bold px-1.5 py-0.5 uppercase tracking-wider ${
+                                isToday 
+                                  ? 'bg-primary text-white' 
+                                  : 'bg-secondary/15 text-secondary'
+                              }`}
+                            >
+                              {relLabel}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Top / Upper Column */}
+                      <td className="px-4 py-3 font-semibold text-gray-900 break-words">
+                        <div className="flex items-center gap-2">
+                          <Shirt size={14} className="text-primary/60 shrink-0" />
+                          <span>{outfit.top}</span>
+                        </div>
+                      </td>
+
+                      {/* Bottom / Lower Column */}
+                      <td className="px-4 py-3 font-medium text-gray-800 break-words">
+                        <div className="flex items-center gap-2">
+                          <Tag size={14} className="text-secondary/60 shrink-0" />
+                          <span>{outfit.bottom}</span>
+                        </div>
+                      </td>
+
+                      {/* Footwear Column */}
+                      <td className="px-4 py-3 text-gray-700 break-words">
+                        {outfit.footwear ? (
+                          <div className="flex items-center gap-1.5">
+                            <Footprints size={13} className="text-muted shrink-0" />
+                            <span>{outfit.footwear}</span>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 italic">-</span>
                         )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 font-semibold text-gray-900 break-words">
-                      {outfit.top}
-                    </td>
-                    <td className="px-4 py-3 font-medium text-gray-800 break-words">
-                      {outfit.bottom}
-                    </td>
-                    <td className="px-4 py-3 text-gray-700 break-words">
-                      {outfit.footwear || '-'}
-                    </td>
-                    <td className="px-4 py-3 text-gray-500 break-words max-w-xs line-clamp-2">
-                      {outfit.notes || '-'}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <Button 
-                          variant="secondary" 
-                          size="sm" 
-                          className="p-1.5" 
-                          onClick={() => openEditModal(outfit)}
-                          title="Edit Outfit"
-                        >
-                          <Pencil size={14} />
-                        </Button>
-                        <Button 
-                          variant="danger" 
-                          size="sm" 
-                          className="p-1.5" 
-                          onClick={() => confirmDelete(outfit)}
-                          title="Delete Outfit"
-                        >
-                          <Trash2 size={14} />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      </td>
+
+                      {/* Notes / Occasion Column */}
+                      <td className="px-4 py-3 text-gray-600 break-words max-w-xs">
+                        {outfit.notes ? (
+                          <span className="line-clamp-2" title={outfit.notes}>
+                            {outfit.notes}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400 italic">-</span>
+                        )}
+                      </td>
+
+                      {/* Actions Column */}
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Button 
+                            variant="secondary" 
+                            size="sm" 
+                            className="p-1.5" 
+                            onClick={() => openEditModal(outfit)}
+                            title="Edit Outfit"
+                          >
+                            <Pencil size={14} />
+                          </Button>
+                          <Button 
+                            variant="danger" 
+                            size="sm" 
+                            className="p-1.5" 
+                            onClick={() => confirmDelete(outfit)}
+                            title="Delete Outfit"
+                          >
+                            <Trash2 size={14} />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Table Footer Summary */}
+          <div className="px-4 py-3 bg-gray-50/70 border-t border-border flex items-center justify-between text-xs text-secondary">
+            <span>
+              Showing <strong className="text-primary font-semibold">{filteredOutfits.length}</strong> {filteredOutfits.length === 1 ? 'outfit' : 'outfits'}
+            </span>
+            <span>
+              Scope: <strong className="text-primary font-semibold">{filterMode === 'month' ? monthYearLabel : filterMode === 'past30' ? 'Past 30 Days' : 'All Time'}</strong>
+            </span>
+          </div>
         </div>
       )}
 
