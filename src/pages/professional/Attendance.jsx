@@ -4,7 +4,6 @@ import LoadingState from '../../components/ui/LoadingState';
 import ErrorState from '../../components/ui/ErrorState';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
-import Select from '../../components/ui/Select';
 import Textarea from '../../components/ui/Textarea';
 import Input from '../../components/ui/Input';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
@@ -169,6 +168,10 @@ export default function Attendance() {
 
   const todayIso = useMemo(() => getLocalIsoDate(new Date()), []);
 
+  const todayRecord = useMemo(() => {
+    return records.find(r => r.record_date === todayIso);
+  }, [records, todayIso]);
+
   const globalUpcomingRemindersCount = useMemo(() => {
     return reminders.filter(r => !r.is_completed && r.reminder_date >= todayIso).length;
   }, [reminders, todayIso]);
@@ -298,6 +301,55 @@ export default function Attendance() {
     }
   };
 
+  const handleQuickMarkToday = async (statusToMark) => {
+    setIsSubmitting(true);
+    const dataToSave = {
+      record_date: todayIso,
+      status: statusToMark,
+      remarks: todayRecord?.remarks || null
+    };
+
+    if (todayRecord) {
+      await editRecord(todayRecord.id, dataToSave);
+    } else {
+      await addRecord(dataToSave);
+    }
+    setIsSubmitting(false);
+  };
+
+  const handleQuickSaveStatus = async (statusToSave) => {
+    setFormError('');
+    if (!STATUS_OPTIONS.includes(statusToSave)) {
+      setFormError('Invalid status selected.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    const dataToSave = {
+      record_date: selectedDateIso,
+      status: statusToSave,
+      remarks: formData.remarks.trim() || null
+    };
+
+    let result;
+    if (editingItem) {
+      result = await editRecord(editingItem.id, dataToSave);
+      if (result.success) {
+        setEditingItem(result.data);
+        setFormData(prev => ({ ...prev, status: statusToSave }));
+      }
+    } else {
+      result = await addRecord(dataToSave);
+      if (result.success) {
+        setEditingItem(result.data);
+        setFormData(prev => ({ ...prev, status: statusToSave }));
+      }
+    }
+
+    setIsSubmitting(false);
+    if (!result.success) setFormError(result.error);
+  };
+
   // Reminder Handlers
   const handleReminderSubmit = async (e) => {
     e.preventDefault();
@@ -405,6 +457,39 @@ export default function Attendance() {
               <span className="hidden sm:inline">Today</span>
             </Button>
           </div>
+
+          {/* Quick Mark Today Buttons */}
+          <div className="flex items-center gap-1.5 border border-border bg-surface px-2.5 py-1.5 self-stretch sm:self-auto justify-between sm:justify-start">
+            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Today:</span>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => handleQuickMarkToday('Present')}
+                disabled={isSubmitting}
+                className={`px-2.5 py-1 text-xs font-bold uppercase tracking-wider border transition-colors ${
+                  todayRecord?.status === 'Present'
+                    ? 'bg-green-700 text-white border-green-800 shadow-sm'
+                    : 'bg-green-50 text-green-800 border-green-300 hover:bg-green-100'
+                }`}
+                title="Mark Today as Present"
+              >
+                Present
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickMarkToday('Absent')}
+                disabled={isSubmitting}
+                className={`px-2.5 py-1 text-xs font-bold uppercase tracking-wider border transition-colors ${
+                  todayRecord?.status === 'Absent'
+                    ? 'bg-red-700 text-white border-red-800 shadow-sm'
+                    : 'bg-red-50 text-red-800 border-red-300 hover:bg-red-100'
+                }`}
+                title="Mark Today as Absent"
+              >
+                Absent
+              </button>
+            </div>
+          </div>
           
           <Button 
             variant="secondary" 
@@ -419,7 +504,20 @@ export default function Attendance() {
         {/* Summary */}
         <div className="flex flex-col sm:flex-row flex-wrap gap-2 items-start sm:items-center">
           <div className="flex flex-wrap gap-2">
-            {STATUS_OPTIONS.map(status => {
+            {/* Always show Present */}
+            <div className="bg-green-50 border border-green-200 px-3 py-1.5 flex items-center gap-2">
+              <span className="text-xs font-bold uppercase text-green-800">Present</span>
+              <span className="text-sm font-bold text-green-900">{summaryCounts['Present']}</span>
+            </div>
+
+            {/* Always show Absent */}
+            <div className="bg-red-50 border border-red-200 px-3 py-1.5 flex items-center gap-2">
+              <span className="text-xs font-bold uppercase text-red-800">Absent</span>
+              <span className="text-sm font-bold text-red-900">{summaryCounts['Absent']}</span>
+            </div>
+
+            {/* Other Statuses if > 0 */}
+            {STATUS_OPTIONS.filter(s => s !== 'Present' && s !== 'Absent').map(status => {
               if (summaryCounts[status] === 0) return null;
               return (
                 <div key={status} className="bg-surface border border-border px-3 py-1.5 flex items-center gap-2">
@@ -520,7 +618,48 @@ export default function Attendance() {
         <div className="space-y-6">
           {/* ATTENDANCE SECTION */}
           <div className="border border-border p-4 bg-gray-50/30">
-            <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4 border-b border-border pb-2">Attendance</h3>
+            <div className="flex items-center justify-between border-b border-border pb-2 mb-4">
+              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Attendance</h3>
+              {editingItem && (
+                <span className={`text-xs font-bold px-2 py-0.5 border ${STATUS_STYLES[editingItem.status] || ''}`}>
+                  Current: {editingItem.status}
+                </span>
+              )}
+            </div>
+
+            {/* Quick One-Click Actions */}
+            <div className="mb-4 p-3 bg-surface border border-border">
+              <span className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">
+                Quick Action (1-Click)
+              </span>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleQuickSaveStatus('Present')}
+                  disabled={isSubmitting}
+                  className={`px-3 py-1.5 text-xs font-bold uppercase tracking-wider border transition-all ${
+                    formData.status === 'Present' && editingItem
+                      ? 'bg-green-700 text-white border-green-800 shadow-sm'
+                      : 'bg-green-50 text-green-800 border-green-300 hover:bg-green-100'
+                  }`}
+                >
+                  ✓ Mark Present
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleQuickSaveStatus('Absent')}
+                  disabled={isSubmitting}
+                  className={`px-3 py-1.5 text-xs font-bold uppercase tracking-wider border transition-all ${
+                    formData.status === 'Absent' && editingItem
+                      ? 'bg-red-700 text-white border-red-800 shadow-sm'
+                      : 'bg-red-50 text-red-800 border-red-300 hover:bg-red-100'
+                  }`}
+                >
+                  ✕ Mark Absent
+                </button>
+              </div>
+            </div>
+
             <form onSubmit={handleAttendanceSubmit} className="space-y-4">
               {formError && (
                 <div className="p-3 text-sm border bg-red-50 text-red-700 border-red-200">
@@ -529,16 +668,30 @@ export default function Attendance() {
               )}
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                <Select
-                  value={formData.status}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                  disabled={isSubmitting}
-                >
-                  {STATUS_OPTIONS.map(status => (
-                    <option key={status} value={status}>{status}</option>
-                  ))}
-                </Select>
+                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                  Select Status
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {STATUS_OPTIONS.map(status => {
+                    const isSelected = formData.status === status;
+                    const style = STATUS_STYLES[status] || 'bg-gray-100 text-gray-800 border-gray-300';
+                    return (
+                      <button
+                        type="button"
+                        key={status}
+                        onClick={() => setFormData(prev => ({ ...prev, status }))}
+                        disabled={isSubmitting}
+                        className={`py-2 px-3 text-xs font-bold uppercase tracking-wider border transition-all text-center ${
+                          isSelected
+                            ? `${style} ring-2 ring-primary ring-offset-1 shadow-sm font-extrabold`
+                            : 'bg-surface text-gray-600 border-border hover:bg-gray-50'
+                        }`}
+                      >
+                        {status}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
               
               <div>
@@ -546,7 +699,7 @@ export default function Attendance() {
                 <Textarea
                   value={formData.remarks}
                   onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
-                  placeholder="e.g. Doctor appointment, Team offsite..."
+                  placeholder="e.g. Sick leave, Personal reason, Official offsite..."
                   disabled={isSubmitting}
                   rows={2}
                 />

@@ -472,5 +472,14 @@ This file tracks implemented features, major changes, technical decisions, and k
 - Enhanced table rows with date tags, upper wear icons, lower wear badges, footwear details, notes/occasions, and quick action buttons.
 - Retained the top at-a-glance metrics bar, month navigation, time scoping, and live search.
 
+## [v0.22.2] - Feature: Attendance Absent Quick-Actions & Permanent Display - 2026-10-05
+
+### Added
+- **Permanent Absent Summary Badge**: Present and Absent count badges are now both permanently visible in the top summary bar with distinct color styles (green for Present, red for Absent).
+- **Today Quick-Actions**: Added one-click `[ Present ]` and `[ Absent ]` toggle buttons directly on the navigation toolbar for today's date.
+- **Attendance Modal Quick-Actions**: Added prominent `[ ✓ Mark Present ]` and `[ ✕ Mark Absent ]` 1-click action buttons at the top of the date modal.
+- **Interactive Visual Status Selector**: Replaced the native dropdown with a responsive grid of colored status buttons where `Absent` is clearly highlighted in red.
+
+
 
 
